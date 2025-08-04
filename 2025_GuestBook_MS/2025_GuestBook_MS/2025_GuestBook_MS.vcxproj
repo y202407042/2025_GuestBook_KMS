@@ -24,6 +24,7 @@
     <ProjectGuid>{8f00ce3c-b0eb-4bac-8107-1fc775e74268}</ProjectGuid>
     <RootNamespace>My2025GuestBookMS</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>WindowsProject1</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -127,13 +128,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="2025_GuestBook_MS.h" />
+    <ClInclude Include="ColorPicker.h" />
+    <ClInclude Include="WindowsProject1.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="2025_GuestBook_MS.cpp" />
+    <ClCompile Include="ColorPicker.cpp" />
+    <ClCompile Include="WindowsProject1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="2025_GuestBook_MS.rc" />

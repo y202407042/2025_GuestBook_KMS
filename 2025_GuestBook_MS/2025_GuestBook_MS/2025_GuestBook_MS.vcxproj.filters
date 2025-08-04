@@ -24,12 +24,18 @@
     <ClInclude Include="Resource.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="2025_GuestBook_MS.h">
+    <ClInclude Include="WindowsProject1.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorPicker.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="2025_GuestBook_MS.cpp">
+    <ClCompile Include="WindowsProject1.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorPicker.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
