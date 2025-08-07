@@ -27,9 +27,27 @@
     <ClInclude Include="2025_GuestBook_MS.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="PenTool.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolButton.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Drawing.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="2025_GuestBook_MS.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PenTool.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolButton.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Drawing.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

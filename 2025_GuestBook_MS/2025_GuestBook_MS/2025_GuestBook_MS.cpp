@@ -1,9 +1,10 @@
 ﻿// 2025_GuestBook_MS.cpp : 애플리케이션에 대한 진입점을 정의합니다.
 //
-
 #include "framework.h"
 #include "2025_GuestBook_MS.h"
+#include "Drawing.h"
 
+/// 커밋 시 작성해야 하는 내용
 #define MAX_LOADSTRING 100
 
 // 전역 변수:
@@ -18,22 +19,21 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR    lpCmdLine,
+    _In_ int       nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: 여기에 코드를 입력합니다.
-
     // 전역 문자열을 초기화합니다.
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_MY2025GUESTBOOKMS, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
     // 애플리케이션 초기화를 수행합니다:
-    if (!InitInstance (hInstance, nCmdShow))
+    if (!InitInstance(hInstance, nCmdShow))
     {
         return FALSE;
     }
@@ -52,10 +52,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    return (int) msg.wParam;
+    return (int)msg.wParam;
 }
-
-
 
 //
 //  함수: MyRegisterClass()
@@ -68,17 +66,17 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MY2025GUESTBOOKMS));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_MY2025GUESTBOOKMS);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = 0;
+    wcex.hInstance = hInstance;
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MY2025GUESTBOOKMS));
+    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_MY2025GUESTBOOKMS);
+    wcex.lpszClassName = szWindowClass;
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
     return RegisterClassExW(&wcex);
 }
@@ -95,20 +93,20 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
+    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
+    if (!hWnd)
+    {
+        return FALSE;
+    }
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+    ShowWindow(hWnd, nCmdShow);
+    UpdateWindow(hWnd);
 
-   return TRUE;
+    return TRUE;
 }
 
 //
@@ -125,67 +123,121 @@ int g_x = 0, g_y = 0; // 마우스 이전 좌표값
 bool abc = false;
 RECT a;
 
+/// 커밋 내용
+PenTool tool;
+bool isDrawing = false;
+DrawingStorage g_drawingStorage;  // 그리기 저장소
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    static int lastX = -1, lastY = -1;  // 이전 좌표 저장용
+
     switch (message)
     {
-    case WM_LBUTTONDOWN: // 마우스 클릭으로 선 그리기
+    case WM_CREATE:
     {
-        abc = true;
+        CreateToolButtons(hWnd);
         break;
     }
-
+    case WM_COMMAND:
+    {
+        int wmId = LOWORD(wParam);
+        // 메뉴 선택을 구문 분석합니다:
+        switch (wmId)
+        {
+        case ID_BTN_PEN:
+        {
+            tool.SetTool(ToolType::Pen);
+            lastX = lastY = -1;  // 툴 변경 시 좌표 초기화
+            break;
+        }
+        case ID_BTN_SPRAY:
+        {
+            tool.SetTool(ToolType::Spray);
+            lastX = lastY = -1;  // 툴 변경 시 좌표 초기화
+            break;
+        }
+        case ID_BTN_BRUSH:
+        {
+            tool.SetTool(ToolType::Brush);
+            lastX = lastY = -1;  // 툴 변경 시 좌표 초기화
+            break;
+        }
+        case IDM_ABOUT:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            break;
+        case IDM_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
+        }
+        break;
+    }
+    case WM_LBUTTONDOWN: // 마우스 클릭으로 선 그리기
+    {
+        isDrawing = true;
+        lastX = LOWORD(lParam);
+        lastY = HIWORD(lParam);
+        break;
+    }
     case WM_LBUTTONUP:
     {
-        abc = false;
+        isDrawing = false;
+        tool.ResetPrevPoint();
+        lastX = lastY = -1;
         break;
     }
     // 창 움직이면 사라지는데 vector 값으로 저장하고 그리면 됨
     case WM_MOUSEMOVE:
     {
-        int x, y;
+        if (!isDrawing) break;
 
-        x = LOWORD(lParam);
-        y = HIWORD(lParam);
-
+        int x = LOWORD(lParam);
+        int y = HIWORD(lParam);
         HDC hdc = GetDC(hWnd);
-        if (abc) {         // if문으로 적용
-            MoveToEx(hdc, g_x, g_y, NULL);
-            LineTo(hdc, x, y);
+
+        // 현재 툴에 따라 명령 생성 및 저장
+        switch (tool.GetCurrentTool()) {
+        case ToolType::Pen:
+            if (lastX != -1 && lastY != -1) {
+                auto penCmd = std::make_unique<PenCommand>(lastX, lastY, x, y);
+                penCmd->Execute(hdc);  // 즉시 그리기
+                g_drawingStorage.AddCommand(std::move(penCmd));  // 저장
+            }
+            break;
+        case ToolType::Spray:
+        {
+            auto sprayCmd = std::make_unique<SprayCommand>(x, y);
+            sprayCmd->Execute(hdc);  // 즉시 그리기
+            g_drawingStorage.AddCommand(std::move(sprayCmd));  // 저장
+            break;
+        }
+        case ToolType::Brush:
+        {
+            auto brushCmd = std::make_unique<BrushCommand>(x, y);
+            brushCmd->Execute(hdc);  // 즉시 그리기
+            g_drawingStorage.AddCommand(std::move(brushCmd));  // 저장
+            break;
+        }
         }
 
-        g_x = x;
-        g_y = y;
-
+        lastX = x;
+        lastY = y;
         ReleaseDC(hWnd, hdc);
         break;
     }
-
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // 메뉴 선택을 구문 분석합니다:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
     case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
-            EndPaint(hWnd, &ps);
-        }
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+
+        // 저장된 모든 그리기 명령 다시 실행
+        g_drawingStorage.RedrawAll(hdc);
+
+        EndPaint(hWnd, &ps);
         break;
+    }
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
