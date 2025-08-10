@@ -1,8 +1,14 @@
-﻿// 2025_GuestBook_MS.cpp : 애플리케이션에 대한 진입점을 정의합니다.
-//
-
-#include "framework.h"
+﻿#include "framework.h"
 #include "2025_GuestBook_MS.h"
+#include <windows.h>
+#include <vector>
+#include "LineData.h"
+#include "FileSave.h"
+#include "FileLoad.h"
+#include "FileGallery.h"
+#include "resource.h"
+
+
 
 #define MAX_LOADSTRING 100
 
@@ -11,6 +17,8 @@ HINSTANCE hInst;                                // 현재 인스턴스입니다.
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 
+
+
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -18,9 +26,9 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR    lpCmdLine,
+    _In_ int       nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -33,7 +41,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MyRegisterClass(hInstance);
 
     // 애플리케이션 초기화를 수행합니다:
-    if (!InitInstance (hInstance, nCmdShow))
+    if (!InitInstance(hInstance, nCmdShow))
     {
         return FALSE;
     }
@@ -52,7 +60,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    return (int) msg.wParam;
+    return (int)msg.wParam;
 }
 
 
@@ -68,17 +76,17 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MY2025GUESTBOOKMS));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_MY2025GUESTBOOKMS);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = 0;
+    wcex.hInstance = hInstance;
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MY2025GUESTBOOKMS));
+    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_MY2025GUESTBOOKMS);
+    wcex.lpszClassName = szWindowClass;
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
     return RegisterClassExW(&wcex);
 }
@@ -95,20 +103,20 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
+    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
+    if (!hWnd)
+    {
+        return FALSE;
+    }
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+    ShowWindow(hWnd, nCmdShow);
+    UpdateWindow(hWnd);
 
-   return TRUE;
+    return TRUE;
 }
 
 //
@@ -125,10 +133,42 @@ int g_x = 0, g_y = 0; // 마우스 이전 좌표값
 bool abc = false;
 RECT a;
 
+std::vector<LineSegment> g_lines;
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+    case WM_CREATE:
+    {
+
+        HWND hBtnSave = CreateWindow(
+            L"BUTTON", L"", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_ICON,
+            20, 20, 64, 64, hWnd, (HMENU)IDC_BTN_SAVE, hInst, NULL);
+
+        HWND hBtnLoad = CreateWindow(
+            L"BUTTON", L"", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_ICON,
+            100, 20, 64, 64, hWnd, (HMENU)IDC_BTN_LOAD, hInst, NULL);
+
+        HWND hBtnGallery = CreateWindow(
+            L"BUTTON", L"", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_ICON,
+            180, 20, 64, 64, hWnd, (HMENU)IDC_BTN_GALLERY, hInst, NULL);
+
+        // 아이콘 불러오기
+        HICON hSaveIcon = (HICON)LoadImage(hInst, MAKEINTRESOURCE(IDI_SAVE), IMAGE_ICON, 64, 64, LR_DEFAULTCOLOR);
+        HICON hLoadIcon = (HICON)LoadImage(hInst, MAKEINTRESOURCE(IDI_LOAD), IMAGE_ICON, 64, 64, LR_DEFAULTCOLOR);
+        HICON hGalleryIcon = (HICON)LoadImage(hInst, MAKEINTRESOURCE(IDI_GALLERY), IMAGE_ICON, 64, 64, LR_DEFAULTCOLOR);
+
+        SendMessage(hBtnSave, BM_SETIMAGE, IMAGE_ICON, (LPARAM)hSaveIcon);
+        SendMessage(hBtnLoad, BM_SETIMAGE, IMAGE_ICON, (LPARAM)hLoadIcon);
+        SendMessage(hBtnGallery, BM_SETIMAGE, IMAGE_ICON, (LPARAM)hGalleryIcon);
+
+
+
+    }
+    break;
+
+
     case WM_LBUTTONDOWN: // 마우스 클릭으로 선 그리기
     {
         abc = true;
@@ -152,6 +192,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (abc) {         // if문으로 적용
             MoveToEx(hdc, g_x, g_y, NULL);
             LineTo(hdc, x, y);
+
+            g_lines.push_back({ g_x, g_y, x, y });
         }
 
         g_x = x;
@@ -162,30 +204,43 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_COMMAND:
+    {
+        int wmId = LOWORD(wParam);
+        // 메뉴 선택을 구문 분석합니다:
+        switch (wmId)
         {
-            int wmId = LOWORD(wParam);
-            // 메뉴 선택을 구문 분석합니다:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
+        case IDC_BTN_SAVE:
+            SaveDrawing(hWnd);
+            break;
+        case IDC_BTN_LOAD:
+            LoadDrawing(hWnd);
+            break;
+
+        case IDM_ABOUT:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            break;
+        case IDM_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
         }
-        break;
+    }
+    break;
     case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
-            EndPaint(hWnd, &ps);
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+        // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
+
+        for (auto& line : g_lines) {
+            MoveToEx(hdc, line.x1, line.y1, NULL);
+            LineTo(hdc, line.x2, line.y2);
         }
-        break;
+
+        EndPaint(hWnd, &ps);
+    }
+    break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;

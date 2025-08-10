@@ -2,6 +2,14 @@
 // Microsoft Visual C++에서 생성한 포함 파일입니다.
 // 다음에서 사용 2025_GuestBook_MS.rc
 
+#define IDC_BTN_SAVE        1001
+#define IDC_BTN_LOAD        1002
+#define IDC_BTN_GALLERY     1003
+
+#define IDI_SAVE            2001
+#define IDI_LOAD            2002
+#define IDI_GALLERY         2003
+
 #define IDS_APP_TITLE			103
 
 #define IDR_MAINFRAME			128
