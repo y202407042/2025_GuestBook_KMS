@@ -3,6 +3,8 @@
 
 #include "framework.h"
 #include "2025_GuestBook_MS.h"
+#include "PenReplay.h"
+#include <vector>
 
 #define MAX_LOADSTRING 100
 
@@ -121,9 +123,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //  WM_DESTROY  - 종료 메시지를 게시하고 반환합니다.
 //
 
+std::vector<POINT> pathPoints;
 int g_x = 0, g_y = 0; // 마우스 이전 좌표값
-bool abc = false;
-RECT a;
+bool tf = false;
+RECT rect;
+PenReplay g_replay;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -131,61 +135,93 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_LBUTTONDOWN: // 마우스 클릭으로 선 그리기
     {
-        abc = true;
+        int x, y;
+        x = LOWORD(lParam);
+        y = HIWORD(lParam);
+        POINT pt = { x, y };
+        GetClientRect(hWnd, &rect);
+
+        if (PtInRect(&rect, pt)) {
+            tf = true;
+            g_x = pt.x;
+            g_y = pt.y;
+        }
         break;
     }
 
     case WM_LBUTTONUP:
     {
-        abc = false;
+        tf = false;
+        g_replay.Start(hWnd);
         break;
     }
     // 창 움직이면 사라지는데 vector 값으로 저장하고 그리면 됨
     case WM_MOUSEMOVE:
     {
-        int x, y;
+        if (tf)
+        {
+            int x, y;
+            x = LOWORD(lParam);
+            y = HIWORD(lParam);
+            POINT pt = { x, y };
+            GetClientRect(hWnd, &rect);
 
-        x = LOWORD(lParam);
-        y = HIWORD(lParam);
+            if (PtInRect(&rect, pt))
+            {
+                g_replay.AddPoint(pt);
+                g_x = pt.x;
+                g_y = pt.y;
 
-        HDC hdc = GetDC(hWnd);
-        if (abc) {         // if문으로 적용
-            MoveToEx(hdc, g_x, g_y, NULL);
-            LineTo(hdc, x, y);
+                InvalidateRect(hWnd, NULL, FALSE);  // 화면 갱신 요청
+            }
         }
+        break;
+    }
 
-        g_x = x;
-        g_y = y;
-
-        ReleaseDC(hWnd, hdc);
+    case WM_TIMER:
+    {
+        g_replay.HandleTimer(hWnd);
         break;
     }
 
     case WM_COMMAND:
+    {
+        int wmId = LOWORD(wParam);
+        // 메뉴 선택을 구문 분석합니다:
+        switch (wmId)
         {
-            int wmId = LOWORD(wParam);
-            // 메뉴 선택을 구문 분석합니다:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
+        case IDM_ABOUT:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            break;
+        case IDM_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
         }
         break;
+    }
+    case WM_SIZE:
+    {
+        GetClientRect(hWnd, &rect);         /// rect를 항상 최신화 하여 잔상 버그 제거
+        g_replay.CleanUpBuffer();           /// 이전 백버퍼 제거
+        g_replay.InitializeBuffer(hWnd, rect);    /// 새 백버퍼 생성
+        break;
+    }
+    case WM_ERASEBKGND:
+    {
+        return 1;  // 배경 지우기 무시 (더블 버퍼링에서 꼭 필요!)
+    }
     case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
-            EndPaint(hWnd, &ps);
-        }
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+
+        g_replay.Draw(hWnd, hdc); // 이제 HWND도 함께 전달
+
+        EndPaint(hWnd, &ps);
         break;
+    }
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
