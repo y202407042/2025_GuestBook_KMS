@@ -2,6 +2,8 @@
 // Microsoft Visual C++에서 생성한 포함 파일입니다.
 // 다음에서 사용 2025_GuestBook_MS.rc
 
+#define IDS_APP_TITLE            103
+
 #define IDD_2025_GUESTBOOK_MS_DIALOG	102
 #define IDD_ABOUTBOX			103
 #define IDM_ABOUT				104
