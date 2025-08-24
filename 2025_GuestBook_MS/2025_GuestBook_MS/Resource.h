@@ -2,16 +2,23 @@
 // Microsoft Visual C++에서 생성한 포함 파일입니다.
 // 다음에서 사용 2025_GuestBook_MS.rc
 
-#define IDS_APP_TITLE			103
+#define IDS_APP_TITLE            103
 
-#define IDR_MAINFRAME			128
-#define IDD_MY2025GUESTBOOKMS_DIALOG	102
+#define IDD_2025_GUESTBOOK_MS_DIALOG	102
 #define IDD_ABOUTBOX			103
 #define IDM_ABOUT				104
 #define IDM_EXIT				105
-#define IDI_MY2025GUESTBOOKMS			107
+#define IDI_2025_GUESTBOOK_MS			107
 #define IDI_SMALL				108
-#define IDC_MY2025GUESTBOOKMS			109
+#define IDC_2025_GUESTBOOK_MS			109
+// 버튼 상수들 200번대
+#define IDC_BTN_PEN        201
+#define IDC_BTN_SPRAY      202
+#define IDC_BTN_COLOR      203
+#define IDC_BTN_SAVE       204
+#define IDC_BTN_LOAD       205
+#define IDC_BTN_REPLAY     206
+
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
